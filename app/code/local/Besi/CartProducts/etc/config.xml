@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<config>
+    <modules>
+        <Besi_CartProducts>
+            <version>1.0.0</version>
+        </Besi_CartProducts>
+    </modules>
+    <global>
+        <helpers>
+            <cartproducts>
+                <class>Besi_CartProducts_Helper</class>
+            </cartproducts>
+        </helpers>
+        <blocks>
+            <cartproducts>
+                <class>Besi_CartProducts_Block</class>
+            </cartproducts>
+        </blocks>
+    </global>
+    <frontend>
+    <layout>
+        <updates>
+            <cartproducts>
+                <file>besi/cartproducts.xml</file>
+            </cartproducts>
+        </updates>
+    </layout>
+    </frontend>
+</config>

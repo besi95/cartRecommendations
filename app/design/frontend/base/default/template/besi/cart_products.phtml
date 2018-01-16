@@ -1,0 +1,334 @@
+<?php
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE_AFL.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/afl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Magento to newer
+ * versions in the future. If you wish to customize Magento for your
+ * needs please refer to http://www.magentocommerce.com for more information.
+ *
+ * @category    design
+ * @package     base_default
+ * @copyright   Copyright (c) 2011 Magento Inc. (http://www.magentocommerce.com)
+ * @license     http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ */
+?>
+<?php
+/**
+ * Product list template
+ *
+ * @see Mage_Catalog_Block_Product_List
+ */
+
+if($this->showBlock()){
+?>
+<script type="text/javascript"
+        src="//widgets.trustedshops.com/reviews/tsSticker/tsProductStickerSummary.js"></script>
+<?php
+//retrieve trusted shops license id
+$trusted_shop_license = Mage::getStoreConfig('trustedshops/' . "info" . '/' . 'tsid');
+
+$url = Mage::helper('core/url')->getCurrentUrl();
+$_productCollection = $this->_getCollection();
+$collectionTemp = new Varien_Data_Collection();
+$_collectionSize = $_productCollection->count();
+
+?>
+
+<?php
+$_helper = $this->helper('catalog/output');
+$theme = $this->helper('ultimo');
+$helpLabels = $this->helper('ultimo/labels');
+$helpTemplate = $this->helper('ultimo/template');
+$helpImg = $this->helper('infortis/image');
+
+//Image size
+$imgWidth = intval($theme->getCfg('category/image_width'));
+$imgHeight = $imgWidth;
+
+//If image width is not specified, use default values
+if ($imgWidth <= 0) {
+    $imgWidth = 295;
+    $imgHeight = 295;
+}
+
+//Image aspect ratio settings
+$keepAspectRatio = $theme->getCfg('category/aspect_ratio');
+if ($keepAspectRatio) {
+    $imgHeight = 0; //Height will be calculated automatically (based on width) to keep the aspect ratio
+    $catViewKeepFrame = FALSE;
+} else {
+    $catViewKeepFrame = TRUE;
+}
+
+if (Mage::registry('catViewKeepFrame') === NULL) {
+    Mage::register('catViewKeepFrame', $catViewKeepFrame);
+}
+
+//Get grid configuration array
+$gc = $theme->getCfgGroup('category_grid');
+
+//Get number of columns (from parameter or from theme config)
+$columnCount = 3;
+if ($this->getGridColumnCount()) {
+    $columnCount = $this->getGridColumnCount();
+} else {
+    $columnCount = $gc['column_count'];
+}
+
+
+//Grid classes
+$gridClasses = '';
+$productNameClasses = '';
+if ($gc['display_name'] == 2 && $gc['display_name_single_line'] == true)
+    $gridClasses .= ' single-line-name';
+if ($gc['display_name'] == 1)
+    $productNameClasses .= ' display-onhover';
+if ($gc['centered'])
+    $gridClasses .= ' centered';
+if ($gc['hover_effect'])
+    $gridClasses .= ' hover-effect';
+if ($gc['equal_height'])
+    $gridClasses .= ' equal-height';
+
+//Size of grid elements
+if ($gc['elements_size']) {
+    $gridClasses .= ' size-' . $gc['elements_size'];
+} else {
+    //Calculate size based on number of columns
+    if ($columnCount >= 6) {
+        $gridClasses .= ' size-xs';
+    } elseif ($columnCount >= 4) {
+        $gridClasses .= ' size-s';
+    }
+}
+
+//Container "actions" at the bottom of the grid item stores button and add-to links
+//If at least one of those elements was set as "Display on hover" but no element was set as "Display":
+//apply appropriate classes to the container.
+$actionsClasses = '';
+if ($gc['display_addtocart'] == 1 || ($gc['display_addtolinks'] == 1 && !$gc['addtolinks_simple'])) {
+    $actionsClasses = ' display-onhover';
+}
+if ($gc['display_addtocart'] == 2 || ($gc['display_addtolinks'] == 2 && !$gc['addtolinks_simple'])) {
+    $actionsClasses = '';
+}
+?>
+<div style="border-bottom: 2px solid #8888; padding-bottom: 55px;" class="besi-cart-products">
+    <?php $difference = $this->getDifferenceToFreeShipping();?>
+    <h1 style="padding-left:10%"><?php echo $this->__('Noch '.$difference.' EUR bis versandkostenfrei.');?></h1>
+    <ul id="product-grid"
+        class="products-grid category-products-grid itemgrid itemgrid-adaptive itemgrid-<?php echo $columnCount; ?>col<?php if ($gridClasses) echo $gridClasses; ?>">
+        <?php if ($this->collection_data['info']['catalog_current_page_count'] != 0 || !isset($this->collection_data['info']['catalog_current_page_count'])): ?>
+            <?php $count = 1;
+            foreach ($_productCollection as $_product): ?>
+                <?php if (in_array($count, [10, 30, 50]) && $helpPromoProducts->displayPromoRight):
+                    ?>
+                    <li class="promo-product-page-<?php echo $helpPromoProducts->displayPromoRight ?> item">
+                        <?php
+                        if (!$helpPromoProducts->productRight)
+                            echo $this->getLayout()->createBlock('cms/block')->setBlockId('static_product_right')->toHtml();
+                        else
+                            echo $this->getLayout()
+                                ->createBlock('catalog/product_list')
+                                ->setCustomProduct($helpPromoProducts->productRight)
+                                ->setCustomProductImagePath($helpPromoProducts->promoRightImage)
+                                ->setTemplate('catalog/product/widget/multiproducts/content/multiproducts_grid_big.phtml')
+                                ->toHtml();
+                        ?>
+                    </li>
+                    <?php
+                elseif (in_array($count, [19, 39, 59]) && $helpPromoProducts->displayPromoLeft):
+                    ?>
+                    <li class="promo-product-page-<?php echo $helpPromoProducts->displayPromoLeft ?> item">
+                        <?php
+                        if (!$helpPromoProducts->productLeft)
+                            echo $this->getLayout()->createBlock('cms/block')->setBlockId('static_product_left')->toHtml();
+                        else
+                            echo $this->getLayout()
+                                ->createBlock('catalog/product_list')
+                                ->setCustomProduct($helpPromoProducts->productLeft)
+                                ->setCustomProductImagePath($helpPromoProducts->promoLeftImage)
+                                ->setTemplate('catalog/product/widget/multiproducts/content/multiproducts_grid_big.phtml')
+                                ->toHtml(); ?>
+                    </li>
+                    <?php
+                else:?>
+                    <li class="promo-product-page-0 item">
+                        <div class="product_gridView_item">
+
+                            <div class="product-image-wrapper" style="max-width:<?php echo $imgWidth; ?>px;">
+
+                                <a href="<?php echo $_product->getProductUrl() ?>"
+                                   title="<?php echo $this->stripTags(preg_replace("/[\"']/", "", $this->getImageLabel($_product, 'small_image')), null, true); ?>"
+                                   class="product-image">
+                                    <img id="product-collection-image-<?php echo $_product->getId(); ?>"
+                                         src="<?php echo method_exists($_product, 'getCustomImagePath') ? $_product->getCustomImagePath() : $helpImg->getImg($_product, $imgWidth, $imgHeight, 'small_image'); ?>"
+                                         alt="<?php echo $this->stripTags(preg_replace("/[\"']/", "", $this->getImageLabel($_product, 'small_image')), null, true); ?>"/>
+
+                                    <?php if ($theme->getCfg('category/alt_image')): ?>
+                                        <?php echo $theme->getAltImgHtml($_product, $imgWidth, $imgHeight); ?>
+                                    <?php endif; ?>
+
+                                    <?php echo $helpLabels->getLabels($_product); //Product labels
+                                    ?>
+                                </a>
+
+                                <?php //Add-to links
+                                if ($gc['display_addtolinks'] != 0 && $gc['addtolinks_simple']) {
+                                    if ($gc['display_addtolinks'] == 1) //Display on hover
+                                        echo $helpTemplate->getCategoryAddtoLinksIcons($_product, $this->getAddToCompareUrl($_product), 'addto-links-icons addto-onimage display-onhover');
+                                    else //Always display
+                                        echo $helpTemplate->getCategoryAddtoLinksIcons($_product, $this->getAddToCompareUrl($_product), 'addto-links-icons addto-onimage');
+                                }
+                                ?>
+
+                            </div> <!-- end: product-image-wrapper -->
+                            <div class="product_list_info_big">
+                                <?php if ($gc['display_name'] != 0): ?>
+                                    <h2 class="product-name<?php echo $productNameClasses; ?>"><a
+                                                href="<?php echo $_product->getProductUrl() ?>"
+                                                title="<?php echo $this->stripTags($_product->getName(), null, true) ?>"><?php echo $_helper->productAttribute($_product, $_product->getName(), 'name') ?></a>
+                                    </h2>
+                                <?php endif; ?>
+
+                                <?php
+                                //Provides extra blocks on which to hang some features for products in the list
+                                //Features providing UI elements targeting this block will display directly below the product name
+                                //echo 'a: ' . $this->getChildHtml('name.after'); //TEST
+                                //echo 'b: ' . $this->getChildHtml('reg2'); //TEST
+
+                                if ($this->getChild('name.after')) {
+                                    $_nameAfterChildren = $this->getChild('name.after')->getSortedChildren();
+                                    foreach ($_nameAfterChildren as $_nameAfterChildName) {
+                                        $_nameAfterChild = $this->getChild('name.after')->getChild($_nameAfterChildName);
+                                        $_nameAfterChild->setProduct($_product);
+                                        echo $_nameAfterChild->toHtml();
+                                    }
+                                }
+                                ?>
+
+                                <?php if ($_product->getRatingSummary()): ?>
+                                    <?php if ($gc['display_rating'] == 1): //Display on hover ?>
+                                        <div class="display-onhover ratings-wrapper"><?php echo $this->getReviewsSummaryHtml($_product, 'short') ?></div>
+                                    <?php elseif ($gc['display_rating'] == 2): //Always display ?>
+                                        <?php echo $this->getReviewsSummaryHtml($_product, 'short') ?>
+                                    <?php endif; ?>
+                                <?php endif; ?>
+
+                                <!--Trusted Shops product reviews-->
+                                <a href="<?php echo $_product->getProductUrl(); ?>#reviews">
+                                    <div class='ts_product_list_rating_block'
+                                         id='ts_product_widget_<?php echo $_product->getId(); ?>'></div>
+                                </a>
+
+                                <script>
+                                    try {
+                                        var summaryBadge = new productStickerSummary();
+                                        summaryBadge.showSummary({
+                                            'tsId': '<?php echo $trusted_shop_license; ?>'
+                                            , 'sku': ['<?php echo $_product->getSku(); ?>']
+                                            , 'element': '#ts_product_widget_<?php echo $_product->getId(); ?>'
+                                            , 'starColor': '#FFDC0F'
+                                            , 'starSize': '14px'
+                                            , 'fontSize': '12px'
+                                            , 'showRating': true
+                                            , 'scrollToReviews': false
+                                        });
+                                    } catch (e) {
+                                        console.log(e);
+                                    }
+                                    ;
+                                </script>
+
+                                <?php if ($gc['display_price'] == 1): //Display on hover ?>
+                                    <div class="display-onhover"><?php echo $this->getPriceHtml($_product, true); ?></div>
+                                <?php elseif ($gc['display_price'] == 2): //Always display ?>
+                                    <?php echo $this->getPriceHtml($_product, true); ?>
+                                <?php endif; ?>
+                                <!--<span class="excl-shipping-text">zzgl. Versandkosten</span>-->
+                                <?php
+                                //If at least one element was set as "Display on hover" but no element was set as "Display":
+                                //aggregate classes from those elements and apply them to the "actions" container.
+                                $actionsClasses = '';
+                                if ($gc['display_addtocart'] == 1 || ($gc['display_addtolinks'] == 1 && !$gc['addtolinks_simple'])) {
+                                    $actionsClasses = ' display-onhover';
+                                }
+                                if ($gc['display_addtocart'] == 2 || ($gc['display_addtolinks'] == 2 && !$gc['addtolinks_simple'])) {
+                                    $actionsClasses = '';
+                                }
+                                ?>
+
+                                <?php
+                                //get bestand data
+                                $bestand = (int)Mage::getResourceModel('catalog/product')->getAttributeRawValue($_product->getId(), 'bestand', 1);
+                                $meldenr = Mage::getResourceModel('catalog/product')->getAttributeRawValue($_product->getId(), 'meldenr', 1);
+                                $vorbestellbar = (int)Mage::getResourceModel('catalog/product')->getAttributeRawValue($_product->getId(), 'vorbestellbar', Mage::app()->getStore()->getStoreId());
+                                $download = Mage::getResourceModel('catalog/product')->getAttributeRawValue($_product->getId(), 'download', Mage::app()->getStore()->getStoreId());
+
+                                ?>
+                                <div style="position: inherit !important;" class="actions clearer<?php echo $actionsClasses; ?>">
+                                    <?php if ($download): ?>
+                                        <a href="<?php echo $_product->getProductUrl() ?>" type="button"
+                                           title="<?php echo Mage::helper('core')->quoteEscape($this->__('Downloadsd')) ?>"
+                                           class="button btn-cart"><span><span><?php echo $this->__('Download') ?></span></span></a>
+                                    <?php else: ?>
+                                        <?php if ($gc['display_addtocart'] != 0): //Cart button ?>
+
+                                            <?php if (!$_product->canConfigure() && $_product->isSaleable()): ?>
+                                                <button type="button"
+                                                        title="<?php echo Mage::helper('core')->quoteEscape($this->__('Add to Cart')) ?>"
+                                                        class="button btn-cart"
+                                                        onclick="setLocation('<?php echo $this->getAddToCartUrl($_product) ?>')">
+                                                    <span><span><?php echo $this->__('Add to Cart') ?></span></span>
+                                                </button>
+                                            <?php elseif ($_product->getStockItem() && $_product->getStockItem()->getIsInStock()): ?>
+                                                <a title="<?php echo $this->__('View Details') ?>"
+                                                   class="button btn-cart"
+                                                   href="<?php echo $_product->getProductUrl() ?>"><?php echo $this->__('View Details') ?></a>
+                                            <?php else: ?>
+                                                <p class="availability out-of-stock">
+                                                    <span><?php echo $this->__('Out of stock') ?></span></p>
+                                            <?php endif; ?>
+
+                                        <?php endif; ?>
+
+                                        <?php //Add-to links
+                                        if ($gc['display_addtolinks'] != 0 && !$gc['addtolinks_simple']) {
+                                            echo $helpTemplate->getCategoryAddtoLinks($_product, $this->getAddToCompareUrl($_product), 'addto-gaps-right');
+                                        }
+                                        ?>
+                                    <?php endif; ?>
+                                </div> <!-- end: actions -->
+                            </div>
+                        </div>
+                    </li>
+                <?php endif; ?>
+                <?php $count++; ?>
+            <?php endforeach; ?>
+        <?php endif; ?>
+    </ul>
+</div>
+<?php } ?>
+<style>
+    @media only screen and (min-width: 959px){
+        .besi-cart-products li.promo-product-page-0.item {
+            width: 25% !important;
+    }
+        .besi-cart-products {
+            padding-left: 10%;
+        }
+    }
+</style>
+
