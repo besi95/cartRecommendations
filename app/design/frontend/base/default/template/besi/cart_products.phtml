@@ -33,11 +33,6 @@
 
 if($this->showBlock()){
 ?>
-<script type="text/javascript"
-        src="//widgets.trustedshops.com/reviews/tsSticker/tsProductStickerSummary.js"></script>
-<?php
-//retrieve trusted shops license id
-$trusted_shop_license = Mage::getStoreConfig('trustedshops/' . "info" . '/' . 'tsid');
 
 $url = Mage::helper('core/url')->getCurrentUrl();
 $_productCollection = $this->_getCollection();
@@ -204,10 +199,6 @@ if ($gc['display_addtocart'] == 2 || ($gc['display_addtolinks'] == 2 && !$gc['ad
                                 <?php endif; ?>
 
                                 <?php
-                                //Provides extra blocks on which to hang some features for products in the list
-                                //Features providing UI elements targeting this block will display directly below the product name
-                                //echo 'a: ' . $this->getChildHtml('name.after'); //TEST
-                                //echo 'b: ' . $this->getChildHtml('reg2'); //TEST
 
                                 if ($this->getChild('name.after')) {
                                     $_nameAfterChildren = $this->getChild('name.after')->getSortedChildren();
@@ -233,25 +224,6 @@ if ($gc['display_addtocart'] == 2 || ($gc['display_addtolinks'] == 2 && !$gc['ad
                                          id='ts_product_widget_<?php echo $_product->getId(); ?>'></div>
                                 </a>
 
-                                <script>
-                                    try {
-                                        var summaryBadge = new productStickerSummary();
-                                        summaryBadge.showSummary({
-                                            'tsId': '<?php echo $trusted_shop_license; ?>'
-                                            , 'sku': ['<?php echo $_product->getSku(); ?>']
-                                            , 'element': '#ts_product_widget_<?php echo $_product->getId(); ?>'
-                                            , 'starColor': '#FFDC0F'
-                                            , 'starSize': '14px'
-                                            , 'fontSize': '12px'
-                                            , 'showRating': true
-                                            , 'scrollToReviews': false
-                                        });
-                                    } catch (e) {
-                                        console.log(e);
-                                    }
-                                    ;
-                                </script>
-
                                 <?php if ($gc['display_price'] == 1): //Display on hover ?>
                                     <div class="display-onhover"><?php echo $this->getPriceHtml($_product, true); ?></div>
                                 <?php elseif ($gc['display_price'] == 2): //Always display ?>
@@ -270,14 +242,8 @@ if ($gc['display_addtocart'] == 2 || ($gc['display_addtolinks'] == 2 && !$gc['ad
                                 }
                                 ?>
 
-                                <?php
-                                //get bestand data
-                                $bestand = (int)Mage::getResourceModel('catalog/product')->getAttributeRawValue($_product->getId(), 'bestand', 1);
-                                $meldenr = Mage::getResourceModel('catalog/product')->getAttributeRawValue($_product->getId(), 'meldenr', 1);
-                                $vorbestellbar = (int)Mage::getResourceModel('catalog/product')->getAttributeRawValue($_product->getId(), 'vorbestellbar', Mage::app()->getStore()->getStoreId());
-                                $download = Mage::getResourceModel('catalog/product')->getAttributeRawValue($_product->getId(), 'download', Mage::app()->getStore()->getStoreId());
-
-                                ?>
+                                    
+                                    
                                 <div style="position: inherit !important;" class="actions clearer<?php echo $actionsClasses; ?>">
                                     <?php if ($download): ?>
                                         <a href="<?php echo $_product->getProductUrl() ?>" type="button"
