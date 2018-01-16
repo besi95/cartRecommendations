@@ -6,4 +6,4 @@ app\design\frontend\base\default\template\checkout\cart.phtml
 
 and put this part where you wish:
 
-"<?php echo $this->getChildHtml('cart_suggestions'); ?>"
+"echo $this->getChildHtml('cart_suggestions');"
